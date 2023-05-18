@@ -16,13 +16,15 @@
 
 package com.example.android.trackmysleepquality.sleeptracker
 
+import android.app.Application
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import com.example.android.trackmysleepquality.R
+import androidx.fragment.app.viewModels
+import com.example.android.trackmysleepquality.database.SleepDatabase
+import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
 
 /**
@@ -32,18 +34,32 @@ import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerB
  */
 class SleepTrackerFragment : Fragment() {
 
-    /**
-     * Called when the Fragment is ready to display content to the screen.
-     *
-     * This function uses DataBindingUtil to inflate R.layout.fragment_sleep_quality.
-     */
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    private lateinit var binding: FragmentSleepTrackerBinding
 
+    private val application: Application
+        get() = requireNotNull(this.activity).application
+
+    private val dataSource: SleepDatabaseDao
+        get() = SleepDatabase.getInstance(application).sleepDatabaseDao
+
+    private val viewModel: SleepTrackerViewModel by viewModels {
+        SleepTrackerViewModelFactory(dataSource, application)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         // Get a reference to the binding object and inflate the fragment views.
-        val binding: FragmentSleepTrackerBinding = DataBindingUtil.inflate(
-                inflater, R.layout.fragment_sleep_tracker, container, false)
+        binding = FragmentSleepTrackerBinding.inflate(inflater)
+
+        binding.run {
+            lifecycleOwner = this@SleepTrackerFragment
+            sleepTrackerViewModel = viewModel
+        }
 
         return binding.root
     }
+
 }

@@ -23,6 +23,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
@@ -53,6 +54,16 @@ class SleepTrackerFragment : Fragment() {
     ): View {
         // Get a reference to the binding object and inflate the fragment views.
         binding = FragmentSleepTrackerBinding.inflate(inflater)
+
+        viewModel.navigateToSleepQuality.observe(viewLifecycleOwner) {
+            it?.let {
+                this.findNavController().navigate(
+                    SleepTrackerFragmentDirections
+                        .actionSleepTrackerFragmentToSleepQualityFragment(it.nightId)
+                )
+                viewModel.doneNavigating()
+            }
+        }
 
         binding.run {
             lifecycleOwner = this@SleepTrackerFragment

@@ -16,11 +16,17 @@
 
 package com.example.android.trackmysleepquality.sleepquality
 
+import android.app.Application
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.NavArgs
+import androidx.navigation.fragment.findNavController
+import com.example.android.trackmysleepquality.database.SleepDatabase
+import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityBinding
 
 /**
@@ -33,18 +39,38 @@ class SleepQualityFragment : Fragment() {
 
     private lateinit var binding: FragmentSleepQualityBinding
 
+    private val application: Application
+        get() = requireNotNull(this.activity).application
+
+    private val arguments: SleepQualityFragmentArgs
+        get() = SleepQualityFragmentArgs.fromBundle(requireNotNull(getArguments()))
+
+    private val dataSource: SleepDatabaseDao
+        get() = SleepDatabase.getInstance(application).sleepDatabaseDao
+
+    private val viewModel: SleepQualityViewModel by viewModels {
+        SleepQualityViewModelFactory(arguments.sleepNightKey, dataSource)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
 
-        binding = FragmentSleepQualityBinding.inflate(inflater)
-        // Get a reference to the binding object and inflate the fragment views.
-//        val binding: FragmentSleepQualityBinding = DataBindingUtil.inflate(
-//                inflater, R.layout.fragment_sleep_quality, container, false)
+        viewModel.navigateToSleepTracker.observe(viewLifecycleOwner) {
+            if (it == true) {
+                this.findNavController().navigate(
+                    SleepQualityFragmentDirections
+                        .actionSleepQualityFragmentToSleepTrackerFragment()
+                )
+                viewModel.doneNavigating()
+            }
+        }
 
-        val application = requireNotNull(this.activity).application
+        binding = FragmentSleepQualityBinding.inflate(inflater)
+
+        binding.sleepQualityViewModel = viewModel
 
         return binding.root
     }
